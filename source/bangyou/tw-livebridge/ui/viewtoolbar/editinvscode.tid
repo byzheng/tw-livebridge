@@ -1,0 +1,20 @@
+created: 20220819054026245
+creator: Bangyou Zheng
+description: Print this tiddler
+modified: 20250808105538543
+modifier: Bangyou Zheng
+revision: 0
+tags: $:/tags/ViewToolbar
+title: $:/plugins/bangyou/tw-livebridge/ui/ViewToolBar/EditInVSCode
+type: text/vnd.tiddlywiki
+
+\define open-in-vscode()
+<$button tooltip="Open in VS Code" class="tc-btn-invisible">
+    {{$:/plugins/bangyou/tw-livebridge/icon/vscode}}
+    <$action-sendmessage
+        $message="tm-open-in-vscode"
+        $param=<<currentTiddler>> />
+</$button>
+\end
+
+<<open-in-vscode>>
