@@ -40,47 +40,48 @@ module-type: startup
             console.warn("WS client disabled: hostname is empty");
             return;
         }
-        isNodeServerWiki().then(isServer => {
+        (async function initWSClient() {
+            const isServer = await isNodeServerWiki();
             if (!isServer) {
                 console.log("WS Client disabled: not running with Node.js server");
                 return;
             }
-        });
-        
-        // Use default port 80 if loc.port is empty
-        const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
+            // Use default port 80 if loc.port is empty
+            const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
 
-        const wsUrl = `ws://${loc.hostname}:${port}/ws`;
-        const ws = new WebSocket(wsUrl);
+            const wsUrl = `ws://${loc.hostname}:${port}/ws`;
+            const ws = new WebSocket(wsUrl);
 
-        ws.addEventListener("open", () => {
-            console.log("Connected to WS server");
-        });
+            ws.addEventListener("open", () => {
+                console.log("Connected to WS server");
+            });
 
-        ws.addEventListener("message", (event) => {
-            let data;
-            try {
-                data = JSON.parse(event.data);
-            } catch (e) {
-                console.error("Invalid WS data", event.data);
-                return;
-            }
-            console.log("WS message in browser:", data);
+            ws.addEventListener("message", (event) => {
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch (e) {
+                    console.error("Invalid WS data", event.data);
+                    return;
+                }
+                console.log("WS message in browser:", data);
 
-            if (data.type === "open-tiddler" && data.title) {
-                openTiddlerInStoryRiver(data.title);
-            }
-        });
-        console.log($tw.rootWidget);
-        $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
-            const title = event.param;
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ type: "edit-tiddler", title }));
-            } else {
-                console.warn("WebSocket not connected");
-            }
-            return true; // stops bubbling
-        });
+                if (data.type === "open-tiddler" && data.title) {
+                    openTiddlerInStoryRiver(data.title);
+                }
+            });
+            console.log($tw.rootWidget);
+            $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
+                const title = event.param;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: "edit-tiddler", title }));
+                } else {
+                    console.warn("WebSocket not connected");
+                }
+                return true; // stops bubbling
+            });
+        })();
+
     };
 
     function openTiddlerInStoryRiver(title) {
