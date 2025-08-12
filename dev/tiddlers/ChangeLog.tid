@@ -4,18 +4,9 @@ tags: doc
 title: ChangeLog
 type: text/vnd.tiddlywiki
 
-!! Release 0.0.4
-* ''12 August, 2025''
-* [BUG] Reconnect WebSocket after visible changes
-
-
-!! Release 0.0.3
-* ''12 August, 2025''
-* [BUG] Reconnect WebSocket on close
-
-
-!! Release 0.0.2
-* ''12 August, 2025''
+!! Release 0.0.5
+* ''13 August, 2025''
+* [BUG] Reconnect WebSocket after visibility changes and connection loss
 * [NEW] Add a button in view toolbar to edit tiddler in Visual Studio Code
 
 !! Release 0.0.1 

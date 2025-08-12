@@ -80,7 +80,12 @@ module-type: startup
             // Reconnect logic
             let reconnectAttempts = 0;
             const maxReconnectDelay = 30000; // 3 seconds
-
+            const MAX_RECONNECT_ATTEMPTS = 10;
+            // Limit reconnect attempts to 10
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error(`WS reconnect failed after ${MAX_RECONNECT_ATTEMPTS} attempts. Giving up.`);
+                return;
+            }
             function reconnectWS() {
                 reconnectAttempts++;
                 const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
