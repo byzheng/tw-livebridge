@@ -21,7 +21,7 @@ module-type: startup
             const clients = new Set();
 
             wss.on("connection", (ws) => {
-                console.log('Client connected');
+                //console.log('Client connected');
                 clients.add(ws);
                 ws.on("message", (msg) => {
                     let data;
@@ -31,11 +31,11 @@ module-type: startup
                         console.error("Invalid WS message", msg);
                         return;
                     }
-                    console.log("Received:", data);
+                    //console.log("Received:", data);
 
                     // Relay to all other clients
                     clients.forEach(client => {
-                        console.log("Relaying to client:", client.readyState);
+                        //console.log("Relaying to client:", client.readyState);
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify(data));
                             console.log("Relayed to client:", data);
