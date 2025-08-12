@@ -48,7 +48,8 @@ module-type: startup
             console.warn("WS client disabled: hostname is empty");
             return;
         }
-        (async function initWSClient() {
+        let ws;
+        async function initWSClient() {
             const isServer = await isNodeServerWiki();
             if (!isServer) {
                 console.log("WS Client disabled: not running with Node.js server");
@@ -58,7 +59,12 @@ module-type: startup
             const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
 
             const wsUrl = `ws://${loc.hostname}:${port}/ws`;
-            const ws = new WebSocket(wsUrl);
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                return;
+            }
+
+            ws = new WebSocket(wsUrl);
 
             ws.addEventListener("open", () => {
                 console.log("Connected to WS server");
@@ -72,13 +78,37 @@ module-type: startup
                     console.error("Invalid WS data", event.data);
                     return;
                 }
-                console.log("WS message in browser:", data);
+                // console.log("WS message in browser:", data);
 
                 if (data.type === "open-tiddler" && data.title) {
                     openTiddlerInStoryRiver(data.title);
                 }
             });
-            console.log($tw.rootWidget);
+
+            // Reconnect logic
+            let reconnectAttempts = 0;
+            const maxReconnectDelay = 30000; // 3 seconds
+            const MAX_RECONNECT_ATTEMPTS = 10;
+            // Limit reconnect attempts to 10
+            if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+                console.error(`WS reconnect failed after ${MAX_RECONNECT_ATTEMPTS} attempts. Giving up.`);
+                return;
+            }
+            function reconnectWS() {
+                reconnectAttempts++;
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
+                console.warn(`WS disconnected. Reconnecting in ${delay / 1000}s...`);
+                setTimeout(() => {
+                    initWSClient();
+                }, delay);
+            }
+
+            ws.addEventListener("close", reconnectWS);
+            ws.addEventListener("error", (e) => {
+                console.error("WS error:", e);
+                ws.close();
+            });
+            // console.log($tw.rootWidget);
             $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
                 const title = event.param;
                 if (ws && ws.readyState === WebSocket.OPEN) {
@@ -88,7 +118,18 @@ module-type: startup
                 }
                 return true; // stops bubbling
             });
-        })();
+        };
+
+        initWSClient();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!ws || ws.readyState === WebSocket.CLOSED) {
+                    console.log("Page visible again - attempting WS reconnect");
+                    initWSClient();
+                }
+            }
+        });
 
     };
 
