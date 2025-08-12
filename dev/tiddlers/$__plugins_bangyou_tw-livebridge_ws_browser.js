@@ -12,20 +12,44 @@ module-type: startup
     exports.synchronous = true;
 
     exports.startup = function () {
+
+        async function isNodeServerWiki() {
+            try {
+                const response = await fetch("/status", { method: "GET" });
+                if (response.ok) {
+                    const data = await response.json();
+                    return !!data.space; // or check for other server-only properties
+                }
+                return false;
+            } catch (err) {
+                return false;
+            }
+        }
+        if (!$tw.browser) {
+            console.warn("WS client disabled: not running in browser");
+            return;
+        }
         const loc = window.location;
         if (loc.protocol === "file:") {
             console.warn("WS client disabled: running from local file");
             return;
         }
-        
+
         // Validate hostname and port
         if (!loc.hostname) {
             console.warn("WS client disabled: hostname is empty");
             return;
         }
+        isNodeServerWiki().then(isServer => {
+            if (!isServer) {
+                console.log("WS Client disabled: not running with Node.js server");
+                return;
+            }
+        });
+        
         // Use default port 80 if loc.port is empty
         const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
-        
+
         const wsUrl = `ws://${loc.hostname}:${port}/ws`;
         const ws = new WebSocket(wsUrl);
 
