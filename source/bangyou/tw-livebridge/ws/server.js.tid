@@ -21,6 +21,10 @@ module-type: startup
     exports.synchronous = true;
 
     exports.startup = function () {
+        if (!$tw.node) {
+            console.warn("WS server disabled: not running in Node.js");
+            return;
+        }
         $tw.hooks.addHook("th-server-command-post-start", function (simpleServer, httpServer, serverName) {
             const WebSocket = require("ws");
             const wss = new WebSocket.Server({ server: httpServer, path: "/ws" });
