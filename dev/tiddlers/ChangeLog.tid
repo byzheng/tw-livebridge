@@ -1,9 +1,13 @@
 created: 20200312083811789
-modified: 20250812120246810
-revision: 0
+modified: 20250812122827970
 tags: doc
 title: ChangeLog
 type: text/vnd.tiddlywiki
+
+
+!! Release 0.0.3
+* ''12 August, 2025''
+* [BUG] Reconnect WebSocket on close
 
 
 !! Release 0.0.2

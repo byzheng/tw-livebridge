@@ -70,6 +70,25 @@ module-type: startup
                     openTiddlerInStoryRiver(data.title);
                 }
             });
+
+            // Reconnect logic
+            let reconnectAttempts = 0;
+            const maxReconnectDelay = 30000; // 3 seconds
+
+            function reconnectWS() {
+                reconnectAttempts++;
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), maxReconnectDelay);
+                console.warn(`WS disconnected. Reconnecting in ${delay / 1000}s...`);
+                setTimeout(() => {
+                    initWSClient();
+                }, delay);
+            }
+
+            ws.addEventListener("close", reconnectWS);
+            ws.addEventListener("error", (e) => {
+                console.error("WS error:", e);
+                ws.close();
+            });
             // console.log($tw.rootWidget);
             $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
                 const title = event.param;
