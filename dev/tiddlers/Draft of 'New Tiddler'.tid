@@ -1,0 +1,12 @@
+created: 20250812035339520
+draft.of: New Tiddler
+draft.title: $:/plugins/bangyou/tw-livebridge/icon/vscode
+modified: 20250812035426467
+tags: 
+title: Draft of 'New Tiddler'
+type: text/vnd.tiddlywiki
+
+<svg width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+  <rect width="22" height="22" fill="#007ACC"/>
+  <polygon points="6,5 11,11 6,17 8,19 14,11 8,3" fill="white"/>
+</svg>

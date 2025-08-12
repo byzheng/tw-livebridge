@@ -1,0 +1,12 @@
+created: 20200131150639151
+modified: 20221028053622258
+tags: doc info
+title: History
+type: text/vnd.tiddlywiki
+
+<$list filter="[[ChangeLog]get[text]split[!!]first[2]addprefix[!!]]">
+
+<<currentTiddler>>
+</$list>
+
+For all changes see [[ChangeLog]]

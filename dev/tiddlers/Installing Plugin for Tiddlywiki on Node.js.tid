@@ -1,0 +1,60 @@
+created: 20211015160346125
+modified: 20221028054257742
+tags: doc
+title: Installing Plugin for Tiddlywiki on Node.js
+type: text/vnd.tiddlywiki
+
+\import [[Plugin Data]]
+
+''III. Tiddlywiki + Node.js''
+
+There are two methods in which custom plugins that are not part of official Tiddlywiki's plugin library can be installed when using Tiddlywiki under Node.js (also called ''client-server configuration'').
+
+* ''local'' installation in only a specific wiki
+* ''global'' installation on the server, so every wiki running on Node.js has access to the plugin
+
+
+<$macrocall $name=alert type=secondary src=""" ''III.A Local installation''<br>
+<br>
+For ''local'' installation under Node.js<br>
+
+i. download the ''<<pluginName>>'' source folder from ~GitHub<br>
+ii. put the ''<<pluginName>>'' source folder directly into local `plugins` folder under your wiki folder,<br>
+iii. if you have not the `plugins` folder, create it under your own wiki folder.<br>
+iv. if server is runing, stop it and restart again<br>
+v. finished, it is now available in your wiki!
+"""/>
+
+For details on how download a plugin from ~GitHub, see [[Downloading Plugin from GitHub]]
+
+<$macrocall $name=alert type=warning src="""''III.B Global installation''<br>
+<br>
+For ''global'' installation under Node.js<br>
+<br>
+i. download the ''<<pluginName>>'' source folder from ~GitHub<br>
+ii. put the ''<<pluginName>>'' source folder into `bangyou` folder (publisher folder) under your server `plugins` folder<br> 
+iii. if you have not the `bangyou` folder (publisher folder), create it under your server `plugins` folder<br>
+vi. finished installing for server!
+"""/>
+
+''Extra step for global installation (III.B)''<br>
+
+After installing the a plugin ''globally'' in your Node.js server (the client-server configuration), to use it in any specific wiki, add it to the `tiddlywiki.info` file of that wiki:
+
+# Open the specific wiki folder of choice
+# Edit the `tiddlywiki.info` file (it is in JSON format) and locate the plugins section (see below)
+# Add entries corresponding to the plugins you wish to use. Here add ''<<pluginName>>''.
+# Take care to retain commas to separate items, but do not terminate the last item in a list with a comma <div>
+
+<pre>{
+	"plugins": [
+		"tiddlywiki/codemirror",
+		"bangyou/<$text text={{{ [<pluginTiddler>removeprefix[$:/plugins/bangyou/]] }}}/>"
+	],
+  ...
+}</pre>
+</div>
+
+# if server is runing, ''stop it and restart'' again
+
+Detailed procedure can be found in [[More on Client-Server Installation]]

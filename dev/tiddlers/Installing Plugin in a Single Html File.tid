@@ -1,0 +1,16 @@
+created: 20211015141129561
+modified: 20240802090510228
+tags: doc
+title: Installing Plugin in a Single Html File
+type: text/vnd.tiddlywiki
+
+\import [[Plugin Data]]
+
+Tiddlywiki as a single html file (like //emtpy.html//) is the most common form of Tiddlywiki in use. To install the plugin on a single html file, follow any of the below procedures.
+
+;I. Drag and drop
+The simplest method, also called ''standalone configuration'', is the drag and drop method.
+
+# Open your Tiddlywiki in a browser
+# Drag and drop <<pluginTiddler>> into your wiki
+# Save and reload your wiki

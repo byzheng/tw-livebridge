@@ -1,0 +1,15 @@
+created: 20240620052715858
+creator: Bangyou Zheng
+modified: 20240620055014526
+modifier: Bangyou Zheng
+tags: 
+title: $:/core/save/lazy-data
+type: text/vnd.tiddlywiki
+
+\define saveTiddlerFilter()
+[is[tiddler]] -[prefix[$:/state/popup/]] -[[$:/HistoryList]] -[[$:/boot/boot.css]] -[type[application/javascript]library[yes]] -[[$:/boot/boot.js]] -[[$:/boot/bootprefix.js]] -[!is[system]tag[lazy]] +[sort[title]] 
+\end
+\define skinnySaveTiddlerFilter()
+[!is[system]tag[lazy]]
+\end
+{{$:/core/templates/tiddlywiki5.html}}

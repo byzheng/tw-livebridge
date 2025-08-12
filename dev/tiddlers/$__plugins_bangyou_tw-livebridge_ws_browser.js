@@ -1,0 +1,68 @@
+/*\
+title: $:/plugins/bangyou/tw-livebridge/ws/browser.js
+type: application/javascript
+module-type: startup
+\*/
+(function () {
+    "use strict";
+
+    exports.name = "ws-client";
+    exports.platforms = ["browser"];
+    exports.after = ["startup"];
+    exports.synchronous = true;
+
+    exports.startup = function () {
+        const loc = window.location;
+        const wsUrl = `ws://${loc.hostname}:${loc.port}/ws`;
+        const ws = new WebSocket(wsUrl);
+
+        ws.addEventListener("open", () => {
+            console.log("Connected to WS server");
+        });
+
+        ws.addEventListener("message", (event) => {
+            let data;
+            try {
+                data = JSON.parse(event.data);
+            } catch (e) {
+                console.error("Invalid WS data", event.data);
+                return;
+            }
+            console.log("WS message in browser:", data);
+
+            if (data.type === "open-tiddler" && data.title) {
+                openTiddlerInStoryRiver(data.title);
+            }
+        });
+        console.log($tw.rootWidget);
+        $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
+            const title = event.param;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: "edit-tiddler", title }));
+            } else {
+                console.warn("WebSocket not connected");
+            }
+            return true; // stops bubbling
+        });
+    };
+
+    function openTiddlerInStoryRiver(title) {
+        const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
+        const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
+
+        const currentTiddler = $tw.wiki.getTiddler("$:/storyList")?.fields?.currentTiddler || ""; // or some fallback
+
+        const story = new $tw.Story({ wiki: $tw.wiki });
+
+        if ($tw.wiki.tiddlerExists(title)) {
+            story.addToStory(title, currentTiddler, {
+                openLinkFromInsideRiver,
+                openLinkFromOutsideRiver
+            });
+            story.addToHistory(title);
+        } else {
+            console.warn("Tiddler does not exist:", title);
+        }
+    }
+
+})();

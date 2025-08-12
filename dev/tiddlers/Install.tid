@@ -1,0 +1,15 @@
+created: 20200312102225036
+modified: 20240802091840270
+tags: doc info
+title: Install
+type: text/vnd.tiddlywiki
+
+\import [[Plugin Data]]
+
+From the below two categories of installing ''<<plugindisplayName>>'' plugin, select any suitable method you like. 
+
+//It is highly recommended to backup your data before trying any new plugin! Do it before installing <<pluginName>>.//
+
+<$macrocall $name=details label="A. Installing plugin for Tiddlywiki single html file" src={{Installing Plugin in a Single Html File}} status=open labelClass="h6" srcClass="alert border-info"/>
+
+<$macrocall $name=details label="B. Installing plugin for Tiddlywiki on Node.js" src={{Installing Plugin for Tiddlywiki on Node.js}} status=closed labelClass="h6" srcClass="alert border-danger"/>

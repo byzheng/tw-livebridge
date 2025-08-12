@@ -1,0 +1,22 @@
+created: 20211015142036735
+modified: 20250808103323742
+tags: doc show-content
+title: Plugin Data
+type: text/vnd.tiddlywiki
+
+<!-- ONLY set your plugin name and reponame -->
+\define pluginName() tw-livebridge
+\define reopName() tw-livebridge
+
+
+<!----- do NOT change below ----->
+
+\define pluginTiddler()      $:/plugins/bangyou/$(pluginName)$
+\define plugindisplayName() {{$(pluginTiddler)$!!name}}
+\define pluginVersion()     {{$(pluginTiddler)$!!version}}
+\define pluginReadme()      $(pluginTiddler)$/readme
+
+\define plugincodeUrl()   https://github.com/byzheng/$(reopName)$
+\define plugindemoUrl()   https://$(reopName)$.bangyou.me
+
+<!-- These macro are used in documenting plugin -->

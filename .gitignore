@@ -1,0 +1,6 @@
+*.bat
+dev/tiddlers/$__StoryList.tid
+dev/tiddlers/$__config_anythingllm_apikey.tid
+dev/tiddlers/$__Import.tid
+cache/
+dev/tiddlers/$__config*

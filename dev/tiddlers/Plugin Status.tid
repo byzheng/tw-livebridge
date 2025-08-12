@@ -1,0 +1,7 @@
+created: 20190315074043002
+modified: 20240912231433828
+tags: doc
+title: Plugin Status
+type: text/vnd.tiddlywiki
+
+<<dbadge Tiddlywiki 5.1.23+ primary>> <<dbadge License MIT success>> <$transclude $variable=dbadge subject=Release status={{$:/plugins/bangyou/tw-gantt!!version}} type=warning /> <<dbadge Status "in progress" danger>>

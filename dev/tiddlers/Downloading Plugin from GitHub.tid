@@ -1,0 +1,12 @@
+created: 20211015193931967
+modified: 20211015194421314
+tags: doc
+title: Downloading Plugin from GitHub
+type: text/vnd.tiddlywiki
+
+\import [[Plugin Data]]
+
+To download the Node.js (client-server) version of ''<<pluginName>>'' plugin do as below:
+
+# visit the repo page on ~GitHub: <<plugincodeUrl>>
+# click on __Clone or download__
