@@ -21,6 +21,7 @@ module-type: startup
             const clients = new Set();
 
             wss.on("connection", (ws) => {
+                console.log('Client connected');
                 clients.add(ws);
                 ws.on("message", (msg) => {
                     let data;
