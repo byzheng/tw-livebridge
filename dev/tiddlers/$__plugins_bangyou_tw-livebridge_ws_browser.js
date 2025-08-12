@@ -64,13 +64,13 @@ module-type: startup
                     console.error("Invalid WS data", event.data);
                     return;
                 }
-                console.log("WS message in browser:", data);
+                // console.log("WS message in browser:", data);
 
                 if (data.type === "open-tiddler" && data.title) {
                     openTiddlerInStoryRiver(data.title);
                 }
             });
-            console.log($tw.rootWidget);
+            // console.log($tw.rootWidget);
             $tw.rootWidget.addEventListener("tm-open-in-vscode", function (event) {
                 const title = event.param;
                 if (ws && ws.readyState === WebSocket.OPEN) {

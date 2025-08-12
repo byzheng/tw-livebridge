@@ -20,7 +20,7 @@ module-type: startup
         $tw.hooks.addHook("th-server-command-post-start", function (simpleServer, httpServer, serverName) {
             const WebSocket = require("ws");
             const wss = new WebSocket.Server({ server: httpServer, path: "/ws" });
-            console.log("WebSocket server running at /ws");
+            //console.log("WebSocket server running at /ws");
 
             const clients = new Set();
 
@@ -42,7 +42,7 @@ module-type: startup
                         //console.log("Relaying to client:", client.readyState);
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify(data));
-                            console.log("Relayed to client:", data);
+                            //console.log("Relayed to client:", data);
                         }
                     });
 
