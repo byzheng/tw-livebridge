@@ -40,7 +40,8 @@ module-type: startup
             console.warn("WS client disabled: hostname is empty");
             return;
         }
-        (async function initWSClient() {
+        let ws;
+        async function initWSClient() {
             const isServer = await isNodeServerWiki();
             if (!isServer) {
                 console.log("WS Client disabled: not running with Node.js server");
@@ -50,7 +51,12 @@ module-type: startup
             const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
 
             const wsUrl = `ws://${loc.hostname}:${port}/ws`;
-            const ws = new WebSocket(wsUrl);
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                return;
+            }
+
+            ws = new WebSocket(wsUrl);
 
             ws.addEventListener("open", () => {
                 console.log("Connected to WS server");
@@ -99,7 +105,18 @@ module-type: startup
                 }
                 return true; // stops bubbling
             });
-        })();
+        };
+
+        initWSClient();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!ws || ws.readyState === WebSocket.CLOSED) {
+                    console.log("Page visible again - attempting WS reconnect");
+                    initWSClient();
+                }
+            }
+        });
 
     };
 

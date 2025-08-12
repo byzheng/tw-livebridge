@@ -4,6 +4,10 @@ tags: doc
 title: ChangeLog
 type: text/vnd.tiddlywiki
 
+!! Release 0.0.4
+* ''12 August, 2025''
+* [BUG] Reconnect WebSocket after visible changes
+
 
 !! Release 0.0.3
 * ''12 August, 2025''
