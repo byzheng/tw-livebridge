@@ -126,6 +126,7 @@ module-type: startup
     };
 
     function openTiddlerInStoryRiver(title) {
+        $tw.syncer.syncFromServer();
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
 
@@ -134,6 +135,7 @@ module-type: startup
         const story = new $tw.Story({ wiki: $tw.wiki });
 
         if ($tw.wiki.tiddlerExists(title)) {
+            
             story.addToStory(title, currentTiddler, {
                 openLinkFromInsideRiver,
                 openLinkFromOutsideRiver
