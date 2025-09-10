@@ -51,7 +51,7 @@ module-type: startup
             const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
 
             const wsUrl = `ws://${loc.hostname}:${port}/ws`;
-            
+
             if (ws && ws.readyState === WebSocket.OPEN) {
                 return;
             }
@@ -127,6 +127,11 @@ module-type: startup
 
     function openTiddlerInStoryRiver(title) {
         $tw.syncer.syncFromServer();
+
+        setTimeout(() => {
+            console.log("Waited 1 second");
+        }, 1000); // 1000 ms = 1 second
+
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
 
@@ -143,22 +148,45 @@ module-type: startup
         if (historyList && historyList.fields && historyList.fields["current-tiddler"]) {
             currentTiddler = historyList.fields["current-tiddler"];
         }
-
+        //console.log(isTiddlerElementInView(title));
         const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
         // Check if tiddler is already open in the story river
         if (tiddlersInStoryRiver.includes(title)) {
             return;
         }
 
-        
 
-        
+
+
         story.addToStory(title, currentTiddler, {
             openLinkFromInsideRiver,
             openLinkFromOutsideRiver
         });
         story.addToHistory(title);
-    
+
     }
+
+    function isTiddlerElementInView(title) {
+        // Find the tiddler div in the StoryRiver by data-tiddler-title
+        const selector = `div[data-tiddler-title="${title.replace(/"/g, '\\"')}"]`;
+        const el = document.querySelector(selector);
+
+        if (!el) {
+            // Not even rendered
+            return false;
+        }
+
+        // Check if element is within the viewport
+        const rect = el.getBoundingClientRect();
+        const inViewport = (
+            rect.top < window.innerHeight &&
+            rect.bottom > 0 &&
+            rect.left < window.innerWidth &&
+            rect.right > 0
+        );
+
+        return inViewport;
+    }
+
 
 })();
