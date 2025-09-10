@@ -138,13 +138,15 @@ module-type: startup
         }
 
         // Get the currently selected tiddler in the river
-        const currentTiddler = $tw.wiki.getTiddler("$:/StoryList")?.fields?.currentTiddler || null;
+        let currentTiddler = null;
+        const historyList = $tw.wiki.getTiddler("$:/HistoryList");
+        if (historyList && historyList.fields && historyList.fields["current-tiddler"]) {
+            currentTiddler = historyList.fields["current-tiddler"];
+        }
 
         const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
-        console.log("Tiddlers currently open in story river:", tiddlersInStoryRiver);
         // Check if tiddler is already open in the story river
         if (tiddlersInStoryRiver.includes(title)) {
-            console.log("Tiddler already open:", title);
             return;
         }
 
