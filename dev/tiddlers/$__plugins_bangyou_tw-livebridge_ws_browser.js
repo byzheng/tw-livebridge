@@ -125,12 +125,11 @@ module-type: startup
 
     };
 
-    function openTiddlerInStoryRiver(title) {
+    async function openTiddlerInStoryRiver(title) {
         $tw.syncer.syncFromServer();
 
-        setTimeout(() => {
-            console.log("Waited 1 second");
-        }, 1000); // 1000 ms = 1 second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
 
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
