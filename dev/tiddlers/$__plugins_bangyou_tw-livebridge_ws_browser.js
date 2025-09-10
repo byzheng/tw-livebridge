@@ -130,20 +130,33 @@ module-type: startup
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
 
-        const currentTiddler = $tw.wiki.getTiddler("$:/storyList")?.fields?.currentTiddler || ""; // or some fallback
-
         const story = new $tw.Story({ wiki: $tw.wiki });
 
-        if ($tw.wiki.tiddlerExists(title)) {
-            
-            story.addToStory(title, currentTiddler, {
-                openLinkFromInsideRiver,
-                openLinkFromOutsideRiver
-            });
-            story.addToHistory(title);
-        } else {
+        if (!$tw.wiki.tiddlerExists(title)) {
             console.warn("Tiddler does not exist:", title);
+            return;
         }
+
+        // Get the currently selected tiddler in the river
+        const currentTiddler = $tw.wiki.getTiddler("$:/StoryList")?.fields?.currentTiddler || null;
+
+        const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
+        console.log("Tiddlers currently open in story river:", tiddlersInStoryRiver);
+        // Check if tiddler is already open in the story river
+        if (tiddlersInStoryRiver.includes(title)) {
+            console.log("Tiddler already open:", title);
+            return;
+        }
+
+        
+
+        
+        story.addToStory(title, currentTiddler, {
+            openLinkFromInsideRiver,
+            openLinkFromOutsideRiver
+        });
+        story.addToHistory(title);
+    
     }
 
 })();
