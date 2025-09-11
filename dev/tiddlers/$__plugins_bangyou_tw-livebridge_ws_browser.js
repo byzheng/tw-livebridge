@@ -127,9 +127,10 @@ module-type: startup
 
     async function openTiddlerInStoryRiver(title) {
         $tw.syncer.syncFromServer();
-
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        // Wait for sync if tiddler is not yet available
+        if (!$tw.wiki.tiddlerExists(title)) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
@@ -147,10 +148,10 @@ module-type: startup
         if (historyList && historyList.fields && historyList.fields["current-tiddler"]) {
             currentTiddler = historyList.fields["current-tiddler"];
         }
-        //console.log(isTiddlerElementInView(title));
+        
         const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
-        // Check if tiddler is already open in the story river
-        if (tiddlersInStoryRiver.includes(title)) {
+        // Check if tiddler is already open in the story river or complelete out of view
+        if (tiddlersInStoryRiver.includes(title) && !isTiddlerElementOutView(title)) {
             return;
         }
 
@@ -165,7 +166,7 @@ module-type: startup
 
     }
 
-    function isTiddlerElementInView(title) {
+    function isTiddlerElementOutView(title) {
         // Find the tiddler div in the StoryRiver by data-tiddler-title
         const selector = `div[data-tiddler-title="${title.replace(/"/g, '\\"')}"]`;
         const el = document.querySelector(selector);
@@ -177,14 +178,15 @@ module-type: startup
 
         // Check if element is within the viewport
         const rect = el.getBoundingClientRect();
-        const inViewport = (
-            rect.top < window.innerHeight &&
-            rect.bottom > 0 &&
-            rect.left < window.innerWidth &&
-            rect.right > 0
+        // Check if any part of the element is in the viewport
+        const isCompletelyOutOfViewport = (
+            rect.bottom <= 0 ||
+            rect.top >= window.innerHeight ||
+            rect.right <= 0 ||
+            rect.left >= window.innerWidth
         );
 
-        return inViewport;
+        return isCompletelyOutOfViewport;
     }
 
 
