@@ -1,9 +1,14 @@
 created: 20200312083811789
 modified: 20250814020000303
 revision: 0
-tags: doc
+tags: doc Tag tag22
 title: ChangeLog
 type: text/vnd.tiddlywiki
+
+
+!! Release 0.0.11
+* ''16 September, 2025''
+* [NEW] Open tiddler only when it is totally out of view
 
 !! Release 0.0.5
 * ''13 August, 2025''
