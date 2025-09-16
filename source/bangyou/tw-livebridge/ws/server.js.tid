@@ -35,6 +35,13 @@ module-type: startup
             wss.on("connection", (ws) => {
                 //console.log('Client connected');
                 clients.add(ws);
+                ws.isAlive = true;
+
+                ws.on("pong", () => {
+                    console.log("Received pong from client");
+                    ws.isAlive = true;
+                });
+
                 ws.on("message", (msg) => {
                     let data;
                     try {
@@ -64,7 +71,20 @@ module-type: startup
                     clients.delete(ws);
                 });
             });
+            // 🔑 Heartbeat: ping clients every 30s
+            const interval = setInterval(() => {
+                clients.forEach((ws) => {
+                    if (!ws.isAlive) {
+                        clients.delete(ws);
+                        return ws.terminate(); // no pong → drop
+                    }
+                    ws.isAlive = false;
+                    console.log("Sending ping to client");
+                    ws.ping(); // trigger pong from client
+                });
+            }, 30000); // 30 seconds
         });
+
     };
 
 })();

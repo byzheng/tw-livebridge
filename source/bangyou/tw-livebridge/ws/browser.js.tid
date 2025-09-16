@@ -59,7 +59,7 @@ module-type: startup
             const port = loc.port ? loc.port : (loc.protocol === "https:" ? "443" : "80");
 
             const wsUrl = `ws://${loc.hostname}:${port}/ws`;
-            
+
             if (ws && ws.readyState === WebSocket.OPEN) {
                 return;
             }
@@ -133,23 +133,69 @@ module-type: startup
 
     };
 
-    function openTiddlerInStoryRiver(title) {
+    async function openTiddlerInStoryRiver(title) {
+        $tw.syncer.syncFromServer();
+        // Wait for sync if tiddler is not yet available
+        if (!$tw.wiki.tiddlerExists(title)) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
         const openLinkFromOutsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromOutsideRiver").fields.text;
 
-        const currentTiddler = $tw.wiki.getTiddler("$:/storyList")?.fields?.currentTiddler || ""; // or some fallback
-
         const story = new $tw.Story({ wiki: $tw.wiki });
 
-        if ($tw.wiki.tiddlerExists(title)) {
-            story.addToStory(title, currentTiddler, {
-                openLinkFromInsideRiver,
-                openLinkFromOutsideRiver
-            });
-            story.addToHistory(title);
-        } else {
+        if (!$tw.wiki.tiddlerExists(title)) {
             console.warn("Tiddler does not exist:", title);
+            return;
         }
+
+        // Get the currently selected tiddler in the river
+        let currentTiddler = null;
+        const historyList = $tw.wiki.getTiddler("$:/HistoryList");
+        if (historyList && historyList.fields && historyList.fields["current-tiddler"]) {
+            currentTiddler = historyList.fields["current-tiddler"];
+        }
+        
+        const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
+        // Check if tiddler is already open in the story river or complelete out of view
+        if (tiddlersInStoryRiver.includes(title) && !isTiddlerElementOutView(title)) {
+            return;
+        }
+
+
+
+
+        story.addToStory(title, currentTiddler, {
+            openLinkFromInsideRiver,
+            openLinkFromOutsideRiver
+        });
+        story.addToHistory(title);
+
     }
+
+    function isTiddlerElementOutView(title) {
+        // Find the tiddler div in the StoryRiver by data-tiddler-title
+        const selector = `div[data-tiddler-title="${title.replace(/"/g, '\\"')}"]`;
+        const el = document.querySelector(selector);
+
+        if (!el) {
+            // Not even rendered
+            return false;
+        }
+
+        // Check if element is within the viewport
+        const rect = el.getBoundingClientRect();
+        // Check if any part of the element is in the viewport
+        const isCompletelyOutOfViewport = (
+            rect.bottom <= 0 ||
+            rect.top >= window.innerHeight ||
+            rect.right <= 0 ||
+            rect.left >= window.innerWidth
+        );
+
+        return isCompletelyOutOfViewport;
+    }
+
 
 })();
