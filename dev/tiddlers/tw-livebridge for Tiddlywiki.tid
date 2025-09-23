@@ -1,5 +1,5 @@
 created: 20221021042001530
-modified: 20250808103255155
+modified: 20250923005541471
 tags: doc start
 title: tw-livebridge for Tiddlywiki
 type: text/vnd.tiddlywiki
@@ -13,6 +13,7 @@ type: text/vnd.tiddlywiki
 \end
 
 
+
 {{Plugin Status}}
 
 <span style="float:right;width:72px">{{$:/favicon.ico}}</span>
@@ -23,6 +24,18 @@ type: text/vnd.tiddlywiki
 <$macrocall $name=find text={{{ [<pluginReadme>get[text]] }}} begin="
 " end=";" mode="first" output="output"/>
 <<<
+
+
+
+!! Used in other tools
+
+The bidirectional communication features of TW LiveBridge are leveraged by other projects to enhance their workflows:
+
+* [[TiddlyEdit|https://github.com/byzheng/vscode-tiddlyedit/]] (VS Code extension) – allows seamless editing of tiddlers directly from VS Code.
+* [[rtiddlywiki|https://github.com/byzheng/rtiddlywiki/]] (R package) – enables preview of R Markdown files inside TiddlyWiki.
+
+These tools don’t use the plugin code directly; instead, they rely on the real-time communication channel established by TW LiveBridge.
+
 
 !! Tutorials
 > No user interactions are required for this plugin.
