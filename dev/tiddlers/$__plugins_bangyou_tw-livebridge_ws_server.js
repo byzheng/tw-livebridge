@@ -36,13 +36,17 @@ module-type: startup
 
                 ws.on("message", (msg) => {
                     let data;
+                    if (Buffer.isBuffer(msg)) {
+                        msg = msg.toString();
+                    }
+                    //console.log("Received:", msg);
                     try {
                         data = JSON.parse(msg);
                     } catch (e) {
                         console.error("Invalid WS message", msg);
                         return;
                     }
-                    //console.log("Received:", data);
+                    
 
                     // Relay to all other clients
                     clients.forEach(client => {

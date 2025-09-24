@@ -8,8 +8,8 @@ TW LiveBridge creates a real-time WebSocket link between TiddlyWiki and external
 
 The bidirectional communication features of TW LiveBridge are leveraged by other projects to enhance their workflows:
 
-* [[TiddlyEdit|https://github.com/byzheng/vscode-tiddlyedit/]] (VS Code extension) – allows seamless editing of tiddlers directly from VS Code.
-* [[rtiddlywiki|https://github.com/byzheng/rtiddlywiki/]] (R package) – enables preview of R Markdown files inside TiddlyWiki.
+* [TiddlyEdit](https://github.com/byzheng/vscode-tiddlyedit/) (VS Code extension) – allows seamless editing of tiddlers directly from VS Code.
+* [rtiddlywiki](https://github.com/byzheng/rtiddlywiki/) (R package) – enables preview of R Markdown files inside TiddlyWiki.
 
 These tools don’t use the plugin code directly; instead, they rely on the real-time communication channel established by TW LiveBridge.
 
