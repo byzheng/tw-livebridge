@@ -1,9 +1,13 @@
 created: 20200312083811789
-modified: 20250814020000303
+modified: 20251007101316502
 revision: 0
 tags: doc Tag
 title: ChangeLog
 type: text/vnd.tiddlywiki
+
+!! Release 0.0.12
+* ''7 October, 2025''
+* [NEW] Enable auto save when editing tiddler in Visual Studio Code (disabled by default)
 
 
 !! Release 0.0.11
@@ -18,3 +22,4 @@ type: text/vnd.tiddlywiki
 !! Release 0.0.1 
 * ''10 August, 2025''
 * [NEW] First beta release
+
