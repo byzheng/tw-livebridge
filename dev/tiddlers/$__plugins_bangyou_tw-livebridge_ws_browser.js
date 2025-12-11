@@ -125,6 +125,9 @@ module-type: startup
 
     };
 
+    // Track the current highlight timeout to prevent overlapping animations
+    let highlightTimeout = null;
+
     async function openTiddlerInStoryRiver(title, offset) {
         // Force sync from server and wait for completion
         if ($tw.syncer) {
@@ -330,12 +333,33 @@ module-type: startup
                     inline: 'nearest'
                 });
 
-                // Optional: highlight the element temporarily
+                // Clear any existing highlight timeout
+                if (highlightTimeout) {
+                    clearTimeout(highlightTimeout);
+                    highlightTimeout = null;
+                }
+
+                // Reset any existing highlight before applying new one
+                const existingHighlights = document.querySelectorAll('[data-tw-highlight="true"]');
+                existingHighlights.forEach(el => {
+                    el.style.backgroundColor = '';
+                    el.style.transition = '';
+                    el.removeAttribute('data-tw-highlight');
+                });
+
+                // Highlight the element temporarily
+                targetElement.setAttribute('data-tw-highlight', 'true');
                 targetElement.style.transition = 'background-color 0.5s';
                 const originalBackground = targetElement.style.backgroundColor;
                 targetElement.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
-                setTimeout(() => {
+                
+                highlightTimeout = setTimeout(() => {
                     targetElement.style.backgroundColor = originalBackground;
+                    setTimeout(() => {
+                        targetElement.style.transition = '';
+                        targetElement.removeAttribute('data-tw-highlight');
+                    }, 500);
+                    highlightTimeout = null;
                 }, 1000);
                 
                 return; // Success
