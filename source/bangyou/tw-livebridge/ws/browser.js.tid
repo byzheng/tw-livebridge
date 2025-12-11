@@ -140,22 +140,8 @@ module-type: startup
         // Force sync from server and wait for completion
         if ($tw.syncer) {
             $tw.syncer.syncFromServer();
-            
-            // // Wait for the tiddler to be synced - try multiple times with increasing delays
-            // let attempts = 0;
-            // const maxAttempts = 10;
-            // while (!$tw.wiki.tiddlerExists(title) && attempts < maxAttempts) {
-            //     await new Promise(resolve => setTimeout(resolve, 200));
-            //     attempts++;
-            // }
-            
-            // // Trigger a refresh by calling the root widget's refresh with an empty changedTiddlers
-            // if ($tw.rootWidget && typeof $tw.rootWidget.refresh === 'function') {
-            //     $tw.rootWidget.refresh({});
-            // }
-            
             // Additional small delay to ensure rendering is complete
-            // await new Promise(resolve => setTimeout(resolve, 150));
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
@@ -222,25 +208,68 @@ module-type: startup
     }
 
     /**
+     * Recursively find the deepest element containing the offset and track the path
+     * @param {Object|Array} node - The node or array to search
+     * @param {number} offset - The offset in the raw text
+     * @param {Array} path - The path of parent elements
+     * @returns {Object|null} Object with { element, topLevelParent } or null
+     */
+    function findDeepestElementWithPath(node, offset, path = []) {
+        // If it's an array, search each item
+        if (Array.isArray(node)) {
+            for (const item of node) {
+                const result = findDeepestElementWithPath(item, offset, path);
+                if (result) return result;
+            }
+            return null;
+        }
+
+        // Must be an object with start and end
+        if (!node || typeof node !== 'object' || node.start === undefined || node.end === undefined) {
+            return null;
+        }
+
+        // Check if offset is within this element's range
+        if (node.start <= offset && offset <= node.end) {
+            // Add current node to the path
+            const currentPath = [...path, node];
+            
+            // Check children first to find the deepest match
+            if (node.children && Array.isArray(node.children)) {
+                const childResult = findDeepestElementWithPath(node.children, offset, currentPath);
+                if (childResult) return childResult;
+            }
+            
+            // If no deeper child found, this is the deepest element
+            // Return the element and its top-level parent (first in path)
+            return {
+                element: node,
+                topLevelParent: currentPath[0] || node
+            };
+        }
+
+        return null;
+    }
+
+    /**
      * Find the element in the parsed tree that contains the given offset
      * @param {Array} parsedTree - The parsed tree array from $tw.wiki.parseTiddler().tree
      * @param {number} offset - The offset in the raw text
-     * @returns {Object|null} The matching element or null if not found
+     * @returns {Object|null} The matching top-level element or null if not found
      */
     function findElementByOffset(parsedTree, offset) {
         if (!parsedTree || !Array.isArray(parsedTree)) {
             return null;
         }
 
-        // First, try to find exact match
-        for (const element of parsedTree) {
-            // Check if offset is within this element's range
-            if (element.start <= offset && offset <= element.end) {
-                return element;
-            }
+        // Find the deepest element containing the offset and its top-level parent
+        const result = findDeepestElementWithPath(parsedTree, offset);
+        
+        if (result && result.topLevelParent) {
+            return result.topLevelParent;
         }
 
-        // If no exact match, find the nearest element
+        // If no exact match, find the nearest top-level element
         // This handles empty lines that aren't in the parsed tree
         let nearestElement = null;
         let minDistance = Infinity;
@@ -265,6 +294,37 @@ module-type: startup
         }
 
         return nearestElement;
+    }
+
+    /**
+     * Get all content elements from the tiddler body that correspond to parsed tree elements
+     * @param {Element} bodyElement - The tiddler body DOM element
+     * @returns {Array} Array of DOM elements matching parsed tree structure
+     */
+    function getContentElements(bodyElement) {
+        const elements = [];
+        
+        // Check if this is a section-editor tiddler
+        if (bodyElement.querySelector('.se-tc-tiddler-body')) {
+            // Section-editor structure
+            // Headers: header > button > h*
+            const allElements = Array.from(bodyElement.querySelectorAll('header.se-sectionheader > button > h1, header.se-sectionheader > button > h2, header.se-sectionheader > button > h3, header.se-sectionheader > button > h4, header.se-sectionheader > button > h5, header.se-sectionheader > button > h6, div.se-sectionbody > div.se-section-view > p > *'));
+            
+            // Filter out <p style="">&nbsp;</p> elements
+            const filtered = allElements.filter(el => {
+                if (el.tagName === 'P' && el.innerHTML.trim() === '&nbsp;') {
+                    return false;
+                }
+                return true;
+            });
+            
+            elements.push(...filtered);
+        } else {
+            // Normal tiddler - direct children
+            elements.push(...bodyElement.children);
+        }
+        
+        return elements;
     }
 
     /**
@@ -315,8 +375,12 @@ module-type: startup
                 return;
             }
 
-            // Find the tiddler body element
-            const bodyElement = tiddlerContainer.querySelector('.tc-tiddler-body.tc-clearfix.tc-reveal');
+            // Find the tiddler body element (support both normal and section-editor)
+            let bodyElement = tiddlerContainer.querySelector('.tc-tiddler-body.tc-clearfix.tc-reveal');
+            if (!bodyElement) {
+                bodyElement = tiddlerContainer.querySelector('.se-tc-tiddler-body.tc-reveal');
+            }
+            
             if (!bodyElement) {
                 attempts++;
                 if (attempts < maxAttempts) {
@@ -327,12 +391,12 @@ module-type: startup
                 return;
             }
 
-            // Get all direct children of the body element
-            const children = Array.from(bodyElement.children);
+            // Get content elements that match the parsed tree structure
+            const contentElements = getContentElements(bodyElement);
 
             // The element at the same index should correspond to the parsed tree element
-            if (elementIndex < children.length) {
-                const targetElement = children[elementIndex];
+            if (elementIndex < contentElements.length) {
+                const targetElement = contentElements[elementIndex];
                 
                 // Scroll the element into view
                 targetElement.scrollIntoView({
@@ -372,7 +436,12 @@ module-type: startup
                 
                 return; // Success
             } else {
-                console.warn("Element index out of range:", elementIndex, "children count:", children.length);
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    continue;
+                }
+                console.warn("Element index out of range:", elementIndex, "content elements count:", contentElements.length);
                 return;
             }
         }
