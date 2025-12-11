@@ -132,22 +132,8 @@ module-type: startup
         // Force sync from server and wait for completion
         if ($tw.syncer) {
             $tw.syncer.syncFromServer();
-            
-            // // Wait for the tiddler to be synced - try multiple times with increasing delays
-            // let attempts = 0;
-            // const maxAttempts = 10;
-            // while (!$tw.wiki.tiddlerExists(title) && attempts < maxAttempts) {
-            //     await new Promise(resolve => setTimeout(resolve, 200));
-            //     attempts++;
-            // }
-            
-            // // Trigger a refresh by calling the root widget's refresh with an empty changedTiddlers
-            // if ($tw.rootWidget && typeof $tw.rootWidget.refresh === 'function') {
-            //     $tw.rootWidget.refresh({});
-            // }
-            
             // Additional small delay to ensure rendering is complete
-            // await new Promise(resolve => setTimeout(resolve, 150));
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
 
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;

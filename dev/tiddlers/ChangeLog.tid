@@ -4,7 +4,7 @@ tags: doc Tag
 title: ChangeLog
 type: text/vnd.tiddlywiki
 
-!! Release 0.0.14
+!! Release 0.0.16
 * ''11 December 2025''
 * [NEW] Take offset argument in open-tiddler to show the current editing position
 
