@@ -81,7 +81,7 @@ module-type: startup
                 // console.log("WS message in browser:", data);
 
                 if (data.type === "open-tiddler" && data.title) {
-                    openTiddlerInStoryRiver(data.title);
+                    openTiddlerInStoryRiver(data.title, data.offset);
                 }
             });
 
@@ -133,11 +133,29 @@ module-type: startup
 
     };
 
-    async function openTiddlerInStoryRiver(title) {
-        $tw.syncer.syncFromServer();
-        // Wait for sync if tiddler is not yet available
-        if (!$tw.wiki.tiddlerExists(title)) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+    // Track the current highlight timeout to prevent overlapping animations
+    let highlightTimeout = null;
+
+    async function openTiddlerInStoryRiver(title, offset) {
+        // Force sync from server and wait for completion
+        if ($tw.syncer) {
+            $tw.syncer.syncFromServer();
+            
+            // // Wait for the tiddler to be synced - try multiple times with increasing delays
+            // let attempts = 0;
+            // const maxAttempts = 10;
+            // while (!$tw.wiki.tiddlerExists(title) && attempts < maxAttempts) {
+            //     await new Promise(resolve => setTimeout(resolve, 200));
+            //     attempts++;
+            // }
+            
+            // // Trigger a refresh by calling the root widget's refresh with an empty changedTiddlers
+            // if ($tw.rootWidget && typeof $tw.rootWidget.refresh === 'function') {
+            //     $tw.rootWidget.refresh({});
+            // }
+            
+            // Additional small delay to ensure rendering is complete
+            // await new Promise(resolve => setTimeout(resolve, 150));
         }
 
         const openLinkFromInsideRiver = $tw.wiki.getTiddler("$:/config/Navigation/openLinkFromInsideRiver").fields.text;
@@ -158,19 +176,25 @@ module-type: startup
         }
         
         const tiddlersInStoryRiver = $tw.wiki.getTiddlerList("$:/StoryList");
-        // Check if tiddler is already open in the story river or complelete out of view
-        if (tiddlersInStoryRiver.includes(title) && !isTiddlerElementOutView(title)) {
-            return;
+        // Check if tiddler is already open in the story river or complete out of view
+        if (!(tiddlersInStoryRiver.includes(title) && !isTiddlerElementOutView(title))) {
+            story.addToStory(title, currentTiddler, {
+                openLinkFromInsideRiver,
+                openLinkFromOutsideRiver
+            });
+            story.addToHistory(title);
+            
+            // Wait for the UI to render the new tiddler
+            await new Promise(resolve => setTimeout(resolve, 200));
         }
 
-
-
-
-        story.addToStory(title, currentTiddler, {
-            openLinkFromInsideRiver,
-            openLinkFromOutsideRiver
-        });
-        story.addToHistory(title);
+        // Scroll to offset if provided (non-blocking)
+        if (offset !== undefined && offset >= 0) {
+            // Use setTimeout to make scroll non-blocking
+            setTimeout(async () => {
+                await scrollToElementByOffset(title, offset);
+            }, 100);
+        }
 
     }
 
@@ -195,6 +219,163 @@ module-type: startup
         );
 
         return isCompletelyOutOfViewport;
+    }
+
+    /**
+     * Find the element in the parsed tree that contains the given offset
+     * @param {Array} parsedTree - The parsed tree array from $tw.wiki.parseTiddler().tree
+     * @param {number} offset - The offset in the raw text
+     * @returns {Object|null} The matching element or null if not found
+     */
+    function findElementByOffset(parsedTree, offset) {
+        if (!parsedTree || !Array.isArray(parsedTree)) {
+            return null;
+        }
+
+        // First, try to find exact match
+        for (const element of parsedTree) {
+            // Check if offset is within this element's range
+            if (element.start <= offset && offset <= element.end) {
+                return element;
+            }
+        }
+
+        // If no exact match, find the nearest element
+        // This handles empty lines that aren't in the parsed tree
+        let nearestElement = null;
+        let minDistance = Infinity;
+
+        for (const element of parsedTree) {
+            let distance;
+            if (offset < element.start) {
+                // Offset is before this element
+                distance = element.start - offset;
+            } else if (offset > element.end) {
+                // Offset is after this element
+                distance = offset - element.end;
+            } else {
+                // Should have been caught above, but just in case
+                return element;
+            }
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestElement = element;
+            }
+        }
+
+        return nearestElement;
+    }
+
+    /**
+     * Scroll to the HTML element that corresponds to an offset in the raw text
+     * @param {string} title - The tiddler title
+     * @param {number} offset - The offset in the raw text
+     */
+    async function scrollToElementByOffset(title, offset) {
+        // Retry logic in case DOM isn't ready yet
+        let attempts = 0;
+        const maxAttempts = 5;
+        
+        while (attempts < maxAttempts) {
+            // Get the tiddler's parse tree
+            const parseResult = $tw.wiki.parseTiddler(title);
+            if (!parseResult || !parseResult.tree) {
+                console.warn("Cannot parse tiddler:", title);
+                return;
+            }
+
+            const parsedTree = parseResult.tree;
+
+            // Find the element in the parsed tree
+            const element = findElementByOffset(parsedTree, offset);
+            if (!element) {
+                console.warn("No element found at offset:", offset);
+                return;
+            }
+
+            // Find the index of this element in the parsed tree
+            const elementIndex = parsedTree.indexOf(element);
+            if (elementIndex === -1) {
+                console.warn("Element not found in tree");
+                return;
+            }
+
+            // Find the tiddler container in the DOM
+            const tiddlerSelector = `div[data-tiddler-title="${title.replace(/"/g, '\\"')}"]`;
+            const tiddlerContainer = document.querySelector(tiddlerSelector);
+
+            if (!tiddlerContainer) {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    continue;
+                }
+                console.warn("Tiddler element not found after retries:", title);
+                return;
+            }
+
+            // Find the tiddler body element
+            const bodyElement = tiddlerContainer.querySelector('.tc-tiddler-body.tc-clearfix.tc-reveal');
+            if (!bodyElement) {
+                attempts++;
+                if (attempts < maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    continue;
+                }
+                console.warn("Tiddler body element not found after retries");
+                return;
+            }
+
+            // Get all direct children of the body element
+            const children = Array.from(bodyElement.children);
+
+            // The element at the same index should correspond to the parsed tree element
+            if (elementIndex < children.length) {
+                const targetElement = children[elementIndex];
+                
+                // Scroll the element into view
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
+                });
+
+                // Clear any existing highlight timeout
+                if (highlightTimeout) {
+                    clearTimeout(highlightTimeout);
+                    highlightTimeout = null;
+                }
+
+                // Reset any existing highlight before applying new one
+                const existingHighlights = document.querySelectorAll('[data-tw-highlight="true"]');
+                existingHighlights.forEach(el => {
+                    el.style.backgroundColor = '';
+                    el.style.transition = '';
+                    el.removeAttribute('data-tw-highlight');
+                });
+
+                // Highlight the element temporarily
+                targetElement.setAttribute('data-tw-highlight', 'true');
+                targetElement.style.transition = 'background-color 0.5s';
+                const originalBackground = targetElement.style.backgroundColor;
+                targetElement.style.backgroundColor = 'rgba(255, 255, 0, 0.3)';
+                
+                highlightTimeout = setTimeout(() => {
+                    targetElement.style.backgroundColor = originalBackground;
+                    setTimeout(() => {
+                        targetElement.style.transition = '';
+                        targetElement.removeAttribute('data-tw-highlight');
+                    }, 500);
+                    highlightTimeout = null;
+                }, 1000);
+                
+                return; // Success
+            } else {
+                console.warn("Element index out of range:", elementIndex, "children count:", children.length);
+                return;
+            }
+        }
     }
 
 
