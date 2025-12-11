@@ -1,9 +1,14 @@
 created: 20200312083811789
-modified: 20251007101316502
-revision: 0
+modified: 20251211033156119
 tags: doc Tag
 title: ChangeLog
 type: text/vnd.tiddlywiki
+
+!! Release 0.0.14
+* ''11 December 2025''
+* [NEW] Take offset argument in open-tiddler to show the current editing position
+
+
 
 !! Release 0.0.12
 * ''7 October, 2025''

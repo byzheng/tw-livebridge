@@ -1,0 +1,76 @@
+created: 20251211033453354
+modified: 20251211034405619
+tags: tutorial
+title: open-tiddler
+type: text/vnd.tiddlywiki
+
+
+The `open-tiddler` command is a WebSocket message type that enables external applications to open a specific tiddler in a TiddlyWiki instance running in a browser. This command is part of the `tw-livebridge` plugin's WebSocket client implementation.
+
+!! Message Format
+
+```json
+{
+    "type": "open-tiddler",
+    "title": "TiddlerTitle",
+    "offset": 123  // optional
+}
+```
+
+!!! Parameters
+
+|!Parameter |!Type |!Required |!Description |
+|`type` |string |Yes |Must be `"open-tiddler"` |
+|`title` |string |Yes |The exact title of the tiddler to open |
+|`offset` |number |No |Character offset in the tiddler's raw wikitext to scroll to and highlight. The end of line should be `\n` instead of `\r\n` |
+
+!! Behavior
+
+When the browser receives an `open-tiddler` message via WebSocket:
+
+* ''Tiddler Existence Check'': Verifies the tiddler exists in the wiki
+* ''Story River Management'': 
+** If the tiddler is not currently visible in the story river, it adds the tiddler
+** If the tiddler is already visible, it reuses the existing instance
+** Respects the wiki's navigation configuration (`openLinkFromInsideRiver` and `openLinkFromOutsideRiver`)
+* ''Scrolling'' (if `offset` provided):
+** Parses the tiddler's wikitext to find the element containing the specified offset
+** Scrolls the corresponding DOM element into view with smooth animation
+** Highlights the element with a yellow background for 1 second
+* ''History Update'': Adds the tiddler to the navigation history
+
+!! Usage Examples
+
+!!! Basic Usage: Open a Tiddler
+
+```javascript
+const ws = new WebSocket("ws://localhost:8080/ws");
+
+ws.addEventListener("open", () => {
+    ws.send(JSON.stringify({
+        type: "open-tiddler",
+        title: "MyTiddler"
+    }));
+});
+```
+
+!!! Advanced Usage: Open and Scroll to Specific Position
+
+```javascript
+const ws = new WebSocket("ws://localhost:8080/ws");
+
+ws.addEventListener("open", () => {
+    ws.send(JSON.stringify({
+        type: "open-tiddler",
+        title: "MyTiddler",
+        offset: 256  // Scroll to character offset 256 in the raw wikitext
+    }));
+    ws.close();  // Close connection after sending
+});
+
+ws.addEventListener("error", (err) => {
+    console.error("WebSocket error:", err);
+    alert("Failed to connect to TiddlyWiki WebSocket server");
+});
+```
+
