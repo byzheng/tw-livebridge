@@ -221,6 +221,7 @@ module-type: startup
             return null;
         }
 
+        // First, try to find exact match
         for (const element of parsedTree) {
             // Check if offset is within this element's range
             if (element.start <= offset && offset <= element.end) {
@@ -228,7 +229,31 @@ module-type: startup
             }
         }
 
-        return null;
+        // If no exact match, find the nearest element
+        // This handles empty lines that aren't in the parsed tree
+        let nearestElement = null;
+        let minDistance = Infinity;
+
+        for (const element of parsedTree) {
+            let distance;
+            if (offset < element.start) {
+                // Offset is before this element
+                distance = element.start - offset;
+            } else if (offset > element.end) {
+                // Offset is after this element
+                distance = offset - element.end;
+            } else {
+                // Should have been caught above, but just in case
+                return element;
+            }
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestElement = element;
+            }
+        }
+
+        return nearestElement;
     }
 
     /**
