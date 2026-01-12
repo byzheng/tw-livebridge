@@ -110,6 +110,16 @@ module-type: startup
                 }
                 return true; // stops bubbling
             });
+
+            $tw.rootWidget.addEventListener("tm-open-doc", function (event) {
+                const page = event.paramObject && event.paramObject.page ? event.paramObject.page : event.param;
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ type: "open-doc", page }));
+                } else {
+                    console.warn("WebSocket not connected");
+                }
+                return true; // stops bubbling
+            });
         };
 
         initWSClient();

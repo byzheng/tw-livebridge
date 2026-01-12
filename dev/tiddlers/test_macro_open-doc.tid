@@ -1,0 +1,8 @@
+created: 20260111235218627
+modified: 20260112001146338
+tags: 
+title: test/macro/open-doc
+type: text/vnd.tiddlywiki
+
+This is a  page in docs <$open-doc page="index" /> and another page <$open-doc page="index" title="Index"/>
+
