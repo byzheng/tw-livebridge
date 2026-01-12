@@ -44,7 +44,7 @@ opendoc for TiddlyWiki
         var linkDom = document.createElement('a');
         linkDom.href = "#";
         linkDom.textContent = title;
-        linkDom.className = "tc-tiddlylink tc-tiddlylink-resolves";
+        linkDom.className = "tw-doclink";
 
         // Add click handler
         linkDom.addEventListener('click', function(event) {
